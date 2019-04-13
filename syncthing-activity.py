@@ -19,7 +19,10 @@ def getfolders(data):
     global folders
 
     for f in data['folders']:
-        folders[f["id"]] = f["label"]
+        folders[f["id"]] = {
+            "label" : f["label"],
+            "path"  : f["path"],
+        }
 
 def process(array, pat=None):
     """ process if pattern `pat' (regular expression) can be found in
@@ -33,7 +36,10 @@ def process(array, pat=None):
             last_id = event["id"]
 
             folder_id = event["data"]["folder"]
-            folder_label = folders[folder_id]
+            folder_label = folders[folder_id]["label"]
+            folder_path = folders[folder_id]["path"]
+
+            path = os.path.join(folder_path, event["data"]["item"])
 
             e = {
                 "time"          : event["time"],
@@ -42,10 +48,11 @@ def process(array, pat=None):
                 "item"          : event["data"]["item"],
                 "folder_label"  : folder_label,
                 "folder_id"     : folder_id,
+                "path"          : path,
             }
 
             if pat:
-                s = "{folder_label} {item}".format(**e)
+                s = "{folder_label} {path}".format(**e)
                 if not re.search(pat, s):
                     continue
 

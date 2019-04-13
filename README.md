@@ -26,7 +26,12 @@ export SYNCTHING_URL="http://localhost:8384"
 
 ## usage
 
-Invoking `syncthing-activity` with a regular expression as parameter will cause it to print lines only if the folder label and the item within a folder match that expression. This makes it possible to view changes on a particular folder only: the raison d'etre of this program: I wanted to see when a friend who shares a folder with me added or changed files within that folder.
+Invoking `syncthing-activity` with a regular expression as parameter will cause
+it to print lines only if the folder label (the name you gave a syncthing
+folder) and the fully qualified path to the item in your file system match that
+expression. This makes it possible to view changes on a particular folder only:
+the raison d'etre of this program: I wanted to see when a friend who shares a
+folder with me added or changed files within that folder.
 
 ## example
 
