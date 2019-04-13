@@ -46,21 +46,21 @@ def process(array):
             # print(json.dumps(e, indent=4))
             print("{folder_label:>15} {type:<5s} {action:<10s} {item}".format(**e))
 
-def main(apikey):
+def main(url, apikey):
     headers = { "X-API-Key" : apikey }
 
-    r = requests.get("http://localhost:8384/rest/system/config", headers=headers)
+    r = requests.get("{0}/rest/system/config".format(url), headers=headers)
     getfolders(json.loads(r.text))
 
     while True:
 
         params = {
             "since" : last_id,
-            "limit" : "10",
+            "limit" : None,
             "events" : "ItemStarted",
         }
 
-        r = requests.get("http://localhost:8384/rest/events", headers=headers, params=params)
+        r = requests.get("{0}/rest/events".format(url), headers=headers, params=params)
         if r.status_code == 200:
             process(json.loads(r.text))
         elif r.status_code != 304:
@@ -70,9 +70,15 @@ def main(apikey):
 
 if __name__ == "__main__":
 
+    url = os.getenv("SYNCTHING_URL", "http://localhost:8384")
     apikey = os.getenv("SYNCTHING_APIKEY")
     if apikey is None:
         print("Missing SYNCTHING_APIKEY in environment", file=sys.stderr)
         exit(2)
 
-    main(apikey)
+    try:
+        main(url, apikey)
+    except KeyboardInterrupt:
+        exit(1)
+    except:
+        raise
