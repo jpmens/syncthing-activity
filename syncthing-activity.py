@@ -5,15 +5,13 @@ import time
 import json
 import sys
 import os
+import re
 
 __author__    = "Jan-Piet Mens <jp@mens.de>"
 __copyright__ = "Copyright 2019 Jan-Piet Mens"
 __license__   = "GNU General Public License"
 
-
-global last_id
 last_id = 0
-
 folders = {}
 
 def getfolders(data):
@@ -23,7 +21,10 @@ def getfolders(data):
     for f in data['folders']:
         folders[f["id"]] = f["label"]
 
-def process(array):
+def process(array, pat=None):
+    """ process if pattern `pat' (regular expression) can be found in
+        folder label or item """
+
     global last_id
 
 
@@ -43,10 +44,15 @@ def process(array):
                 "folder_id"     : folder_id,
             }
 
+            if pat:
+                s = "{folder_label} {item}".format(**e)
+                if not re.search(pat, s):
+                    continue
+
             # print(json.dumps(e, indent=4))
             print("{folder_label:>15} {type:<5s} {action:<10s} {item}".format(**e))
 
-def main(url, apikey):
+def main(url, apikey, pat):
     headers = { "X-API-Key" : apikey }
 
     r = requests.get("{0}/rest/system/config".format(url), headers=headers)
@@ -62,7 +68,7 @@ def main(url, apikey):
 
         r = requests.get("{0}/rest/events".format(url), headers=headers, params=params)
         if r.status_code == 200:
-            process(json.loads(r.text))
+            process(json.loads(r.text), pat)
         elif r.status_code != 304:
             time.sleep(60)
             continue
@@ -76,8 +82,11 @@ if __name__ == "__main__":
         print("Missing SYNCTHING_APIKEY in environment", file=sys.stderr)
         exit(2)
 
+    pattern = None
+    if len(sys.argv) > 1:
+        pattern = sys.argv[1]
     try:
-        main(url, apikey)
+        main(url, apikey, pattern)
     except KeyboardInterrupt:
         exit(1)
     except:
